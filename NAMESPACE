@@ -1,0 +1,11 @@
+import(Rsamtools)
+import(IRanges)
+import(GenomicRanges)
+import(S4Vectors)
+importFrom(parallel, makeCluster, stopCluster)
+importFrom(doParallel, registerDoParallel)
+importFrom(foreach, foreach, '%dopar%')
+export(findArtifactChimericReads)
+export(filterBamByReadNames)
+export(FFPEReadFilter)
+

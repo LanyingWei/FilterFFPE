@@ -1,0 +1,101 @@
+%\VignetteIndexEntry{An introduction to FilterFFPE}
+%\VignetteDepends{}
+%\VignetteKeywords{FFPE Artifacts Removal, Structural Variation, NGS}
+%\VignettePackage{FilterFFPE}
+\documentclass{article}
+
+<<style, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\title{An Introduction to \Biocpkg{FilterFFPE}}
+\author{Lanying Wei}
+\date{Modified: 20 August, 2020. Compiled: \today}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+<<options, echo=FALSE>>=
+options(width=60)
+@
+
+\section{Introduction}
+
+The next-generation sequencing (NGS) reads from formalin-fixed paraffin-embedded
+(FFPE) samples contain numerous artifact chimeric reads, which can lead to a
+large number of false positive structural variation (SV) calls. The
+\Biocpkg{FilterFFPE} package finds and filters these artifact chimeric reads
+from BAM files of FFPE samples.
+
+\section{Input}
+
+The required input is an indexed BAM file of the FFPE sample, the PCR or optical
+duplicates should be marked or removed from the BAM file. Example of such a BAM
+file is stored in the 'extdata' directory of \Biocpkg{FilterFFPE} package).
+
+\section{Artifact Chimeric Read Filtration}
+
+The filtration includes two steps: 1) Find artifact chimeric reads from BAM file
+. 2) Remove these artifact chimeric reads in the filtered BAM file. We recommend
+to also remove PCR or optical duplicates of all chimeric reads, since these
+reads may contain duplicates of artifact chimeric reads.
+\Rfunction{findArtifactChimericReads} can be used to find artifact chimeric
+reads, read names of PCR or optical duplicates of all chimeric reads are also
+found and written in a txt file by this function.
+\Rfunction{filterBamByReadNames} can be used for further filtration, it
+generates a filtered and indexed BAM file. \Rfunction{FFPEReadFilter} combines
+these two functions.
+
+<<findArtifactChimericReads>>=
+library(FilterFFPE)
+
+# Find artifact chimeric reads
+file <- system.file("extdata", "example.bam", package = "FilterFFPE")
+outFolder <- tempdir()
+FFPEReadsFile <- paste0(outFolder, "/example.FFPEReads.txt")
+dupChimFile <- paste0(outFolder, "/example.dupChim.txt")
+artifactReads <- findArtifactChimericReads(file = file, threads = 2,
+                                           FFPEReadsFile = FFPEReadsFile,
+                                           dupChimFile = dupChimFile)
+head(artifactReads)
+
+@
+%%
+
+<<filterBamByReadNames>>=
+# Filter artifact chimeric reads and PCR or optical duplicates of chimeric reads
+dupChim <- readLines(dupChimFile)
+readsToFilter <- c(artifactReads, dupChim)
+destination <- paste0(outFolder, "/example.FilterFFPE.bam")
+filterBamByReadNames(file = file, readsToFilter = readsToFilter,
+                     destination = destination, overwrite=TRUE)
+
+@
+%%
+
+<<FFPEReadFilter>>=
+# Perform finding and filtering with one function
+file <- system.file("extdata", "example.bam", package = "FilterFFPE")
+outFolder <- tempdir()
+FFPEReadsFile <- paste0(outFolder, "/example.FFPEReads.txt")
+dupChimFile <- paste0(outFolder, "/example.dupChim.txt")
+destination <- paste0(outFolder, "/example.FilterFFPE.bam")
+FFPEReadFilter(file = file, threads=2, destination = destination,
+               overwrite=TRUE, FFPEReadsFile = FFPEReadsFile,
+               dupChimFile = dupChimFile)
+
+@
+%%
+
+\appendix
+\section{Session info}
+<<sessionInfo>>=
+packageDescription("FilterFFPE")
+sessionInfo()
+@
+
+\end{document}

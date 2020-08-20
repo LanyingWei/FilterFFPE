@@ -1,0 +1,6 @@
+* example.bam:
+Formalin-fixed paraffin-embedded (FFPE) sample. example.bam was sub-sampled from study 
+SRP044740 of the European Nucleotide Archive (ENA) (https://www.ebi.ac.uk/ena/browser/view/SRP044740)
+
+* example.bam.bai:
+The index was generated using SAMtools.
