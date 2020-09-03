@@ -1,6 +1,6 @@
 filterReadsOfSV <- function(supAlign, maxReadsOfSameBreak=2) {
     chrs <- unique(supAlign$rname)
-    for (i in seq_len(chrs)) {
+    for (i in seq_along(chrs)) {
         chr <- chrs[i]
         temp <- lapply(supAlign, function(x) x[which(supAlign$rname == chr)])
         startPosFreq <- table(temp$pos)

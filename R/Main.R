@@ -88,6 +88,7 @@ FFPEReadFilter <- function(file, maxReadsOfSameBreak=2, minMapBase=1,
                                   dupChimFile = dupChimFile)
     if (filterdupChim == TRUE) {
         dupChim <- readLines(dupChimFile)
+        dupChim <- dupChim[dupChim != ""]
         message(paste0("Filtering ", length(unique(artifactReads)),
                        " artifact chimeric reads and ", length(unique(dupChim)),
                        " PCR or optical duplicates of all chimeric reads from ",
