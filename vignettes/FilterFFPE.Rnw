@@ -91,11 +91,21 @@ FFPEReadFilter(file = file, threads=2, destination = destination,
 @
 %%
 
+The generated BAM file can be loaded with \Rfunction{scanBam} function from \Biocpkg{Rsamtools} package for further interrogation.
+
+<<scanBAM>>=
+# load Bam file with scanBAM
+newBam <- Rsamtools::scanBam(destination)
+head(newBam[[1]]$seq)
+@
+
 \appendix
 \section{Session info}
 <<sessionInfo>>=
 packageDescription("FilterFFPE")
 sessionInfo()
 @
+
+%%
 
 \end{document}
