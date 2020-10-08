@@ -19,9 +19,8 @@ filterReadsOfSV <- function(supAlign, maxReadsOfSameBreak=2) {
     return(res)
 }
 
-filterReadsWithoutShortMapping <- function(chimericReads, start, end,
-                                           minMapBase=1) {
-
+readAnnotation <- function(chimericReads, start, end) {
+    
     chimericReads <- lapply(chimericReads, function(x) x[start:end])
     firstRead <-
         vapply(chimericReads$flag, function(x) as.integer(intToBits(x))[7],
@@ -35,19 +34,44 @@ filterReadsWithoutShortMapping <- function(chimericReads, start, end,
     cigarNum <-
         lapply(chimericReads $cigar, function(x)
             unlist(strsplit(as.character(x), split = "[A-Z]+")))
-
+    
     chimericReads[[length(chimericReads ) + 1]] <- firstRead
     chimericReads[[length(chimericReads ) + 1]] <- isSupplementary
     chimericReads[[length(chimericReads ) + 1]] <- cigarChar
     chimericReads[[length(chimericReads ) + 1]] <- cigarNum
-
+    
     names(chimericReads )[(length(chimericReads ) - 3):
                               length(chimericReads ) ] <-
         c("firstRead", "isSupplementary", "cigarChar", "cigarNum")
+    return(chimericReads)
+}
 
+filterAllReadsWithoutShortMapping <- function(chimericReads, minMapBase=1,
+                                              threads=1) {
+    nReads <- 1e+4
+    starts <- seq(1, length(chimericReads$qname), by = nReads)
+    ends <- starts + nReads - 1
+    ends[length(ends)] <- length(chimericReads$qname)
+
+    cl <- makeCluster(threads)
+    registerDoParallel(cl)
+
+    chimericReads <- foreach(start=starts,
+                             end=ends,
+                             .combine = function(x, y) Map("c", x, y),
+                             .verbose = FALSE,
+                             .packages = c("Biostrings", 
+                                           "Rsamtools", 
+                                           "BiocGenerics"),
+                             .export = c("readAnnotation")
+    ) %dopar% {
+        readAnnotation(chimericReads = chimericReads, start = start, end = end)
+    }
+    stopCluster(cl)
+    
     readNames <- unique(chimericReads$qname)
     keepedReadNames <- NULL
-
+    
     for (readName in readNames) {
         shortMapping <- TRUE
         readIndex <- which(chimericReads$qname == readName)
@@ -81,7 +105,7 @@ filterReadsWithoutShortMapping <- function(chimericReads, start, end,
             keepedReadNames <- c(keepedReadNames, readName)
         }
     }
-
+    
     keepIndex <- which(chimericReads$qname %in% keepedReadNames)
     chimericReads$cigarNum <- NULL
     chimericReads$cigarChar <- NULL
@@ -89,33 +113,4 @@ filterReadsWithoutShortMapping <- function(chimericReads, start, end,
     chimericReads$cigarChar <- NULL
     chimericReads <- lapply(chimericReads, function(x) x[keepIndex])
     return(chimericReads)
-}
-
-
-filterAllReadsWithoutShortMapping <- function(chimericReads, minMapBase=1,
-                                              threads=1) {
-    nReads <- 1e+4
-    starts <- seq(1, length(chimericReads$qname), by = nReads)
-    ends <- starts + nReads - 1
-    ends[length(ends)] <- length(chimericReads$qname)
-
-    cl <- makeCluster(threads)
-    registerDoParallel(cl)
-
-    res <- foreach(start=starts,
-                   end=ends,
-                   .combine = function(x, y) Map("c", x, y),
-                   .inorder = TRUE,
-                   .verbose = FALSE,
-                   .packages = c("Biostrings", "Rsamtools", "BiocGenerics"),
-                   .export = c("filterReadsWithoutShortMapping")
-    ) %dopar% {
-        filterReadsWithoutShortMapping(chimericReads = chimericReads,
-                                       start = start,
-                                       end = end,
-                                       minMapBase = minMapBase)
-        }
-
-    stopCluster(cl)
-    return(res)
 }
