@@ -2,3 +2,5 @@ Changes in version 0.99.0 (2020-08-20)
 + Submitted to Bioconductor
 Changes in version 0.99.3 (2020-10-08)
 + Fix error in the algorithm under multiple threading
+Changes in version 0.99.3 (2020-10-09)
++ Speed up the filtering process using minMapBase

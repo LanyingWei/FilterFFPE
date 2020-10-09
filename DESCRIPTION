@@ -1,7 +1,7 @@
 Package: FilterFFPE
 Type: Package
 Title: FFPE Artificial Chimeric Read Filter for NGS data
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: person("Lanying", "Wei", email="lanying.wei@uni-muenster.de",
     role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4281-8017"))
 Description: This package finds and filters artificial chimeric reads 
