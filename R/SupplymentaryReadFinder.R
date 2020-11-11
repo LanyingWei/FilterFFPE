@@ -1,5 +1,5 @@
 findSupplymentaryReads <- function(bamFile, which=IRangesList(),
-                                   what=scanBamWhat(), mapqFilter=1,
+                                   what=scanBamWhat(),
                                    writeDupToFile=FALSE, dupFile=NA,
                                    append=TRUE) {
     message('Finding reads with supplymentary alignments...')
@@ -10,8 +10,7 @@ findSupplymentaryReads <- function(bamFile, which=IRangesList(),
     p <- ScanBamParam(flag = f,
                       simpleCigar = FALSE,
                       what = what,
-                      which = which,
-                      mapqFilter = mapqFilter)
+                      which = which)
 
     supAlign <- scanBam(bamFile, param = p)[[1]]
     message(paste("Found ", length(supAlign$qname),
@@ -24,8 +23,7 @@ findSupplymentaryReads <- function(bamFile, which=IRangesList(),
     p <- ScanBamParam(flag = f,
                       simpleCigar = FALSE,
                       what = "qname",
-                      which = which,
-                      mapqFilter = mapqFilter)
+                      which = which)
 
     dupReadName <- unique(scanBam(bamFile, param = p)[[1]]$qname)
     dupIndex <- which(supAlign$qname %in% dupReadName)
@@ -42,7 +40,7 @@ findSupplymentaryReads <- function(bamFile, which=IRangesList(),
 }
 
 findAllSupplymentaryReads <- function(bamFilePath, writeDupToFile=FALSE,
-                                      dupFile=NA, threads=1, mapqFilter=1) {
+                                      dupFile=NA, threads=1) {
 
     bamFile <- BamFile(bamFilePath)
     seqInfo <- scanBamHeader(bamFile)$targets
@@ -65,7 +63,6 @@ findAllSupplymentaryReads <- function(bamFilePath, writeDupToFile=FALSE,
         findSupplymentaryReads(bamFile = bamFile,
                                which = chrRegions[i],
                                what = what,
-                               mapqFilter = mapqFilter,
                                writeDupToFile = writeDupToFile,
                                dupFile = dupFile,
                                append = TRUE)

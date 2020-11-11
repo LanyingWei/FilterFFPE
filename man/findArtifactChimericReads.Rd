@@ -22,14 +22,19 @@ dupChimFile=sub("\\\.bam(\\\.gz)?", ".dupChim.txt", file))
   The maximum allowed number of artifact chimeric reads sharing a false positive
   breakpoint. If the number of reads sharing the same breakpoint exceeds this
   number, these reads are not recognized as artifact chimeric reads. Reads
-  marked as PCR or optical duplicates are excluded from the calculation.
+  marked as PCR or optical duplicates are excluded from the calculation. For 
+  paired-end sequencing, a read pair of artifact chimeric fragments may both 
+  contain the artifact breakpoints; thereby, the defalut is set to 2.
 }
   \item{minMapBase}{
   The minimum required length (bp) of a short complementary mapping for an
   artifact chimeric read. Artifact chimeric reads are derived from the
   combination of two single-stranded DNA fragments linked by short reverse
-  complementary mapping. Reads with such complementary sequences shorter than
-  this length are not recognized as artifact chimeric reads.
+  complementary regions (SRCR). Reads with SRCR shorter than this length are 
+  not recognized as artifact chimeric reads. Note: sequence errors and mutations
+  might influence the detection of the existence and length of SRCR. Suggested
+  range: 0-3. When it is set to 0 or any value below 1, this step will be 
+  skipped.
 }
   \item{threads}{
   Number of threads to use. Multi-threading can speed up the process.

@@ -9,32 +9,38 @@ findArtifactChimericReads <- function(file, maxReadsOfSameBreak=2,
     if(maxReadsOfSameBreak < 1) {
         stop("maxReadsOfSameBreak should be larger than 1")
     }
-    if(minMapBase < 1) {
-        stop("minMapBase should be larger than 0")
-    }
     message('Finding reads with supplementary alignments...')
     supAlign <- findAllSupplymentaryReads(bamFilePath = file,
-                                          mapqFilter = 1,
                                           writeDupToFile = TRUE,
                                           dupFile = dupChimFile,
                                           threads = threads)
-    message(paste0('Found ', length(supAlign$qname), " reads."))
+    message(paste0('Found ', length(unique(supAlign$qname)), " read names"))
     message("Excluding chimeric reads from real SVs...")
+    message("Filtering reads based on the number of shared breakpoints...")
     supAlignNotSV <- filterReadsOfSV(supAlign,
                                      maxReadsOfSameBreak = maxReadsOfSameBreak)
-    message(paste0(length(supAlignNotSV$qname), " reads remained."))
     readNames <-  unique(supAlignNotSV$qname)
-    message("Filtering reads based on short complementary sequences...")
-    allChimericReadsNotSV <- findAllReadsWithID(bamFilePath = file,
-                                                readNames = readNames,
-                                                threads = threads)
-    artifactChimericReads <-
-        filterAllReadsWithoutShortMapping(chimericReads = allChimericReadsNotSV,
-                                          threads = threads)
-    FFPEReads <- unique(artifactChimericReads$qname)
-    write(FFPEReads, FFPEReadsFile)
-    message(paste0(length(FFPEReads), " reads remained and reported."))
-    return(FFPEReads)
+    message(paste0(length(readNames), " read names remained."))
+    if (minMapBase < 1) {
+        message("minMapBase < 1, skip filtering with minMapBase.")
+        message(paste0(length(readNames), " read names remained and reported."))
+        write(readNames, FFPEReadsFile)
+        return(readNames)
+    } else {
+        message(paste0("Filtering reads based on the existence and the length ",
+                       "of short reverse complementary regions..."))
+        allChimericReads <- findAllReadsWithID(bamFilePath = file,
+                                               readNames = readNames,
+                                               threads = threads)
+        artifactChimericReads <-
+            filterAllReadsWithoutShortMapping(chimericReads = allChimericReads,
+                                              threads = threads, 
+                                              minMapBase = minMapBase)
+        FFPEReads <- unique(artifactChimericReads)
+        write(FFPEReads, FFPEReadsFile)
+        message(paste0(length(FFPEReads), " read names remained and reported."))
+        return(FFPEReads)
+    }
 }
 
 
@@ -72,9 +78,6 @@ FFPEReadFilter <- function(file, maxReadsOfSameBreak=2, minMapBase=1,
     if(missing(file)) stop("file is required")
     if(maxReadsOfSameBreak < 1) {
         stop("maxReadsOfSameBreak should be larger than 1")
-    }
-    if(minMapBase < 1) {
-        stop("minMapBase should be larger than 0")
     }
     if (overwrite == FALSE & file.exists(destination)) {
         stop("Destination file already exists!")

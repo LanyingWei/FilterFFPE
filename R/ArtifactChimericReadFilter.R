@@ -1,4 +1,4 @@
-filterReadsOfSV <- function(supAlign, maxReadsOfSameBreak=2) {
+filterReadsOfSV <- function(supAlign, maxReadsOfSameBreak) {
     chrs <- unique(supAlign$rname)
     for (i in seq_along(chrs)) {
         chr <- chrs[i]
@@ -19,7 +19,7 @@ filterReadsOfSV <- function(supAlign, maxReadsOfSameBreak=2) {
     return(res)
 }
 
-filterReadsWithoutShortMapping <- function(chimericReads, minMapBase = 1) {
+filterReadsWithoutShortMapping <- function(chimericReads, minMapBase) {
     
     firstRead <-
         vapply(chimericReads$flag, function(x) as.integer(intToBits(x))[7],
@@ -47,7 +47,8 @@ filterReadsWithoutShortMapping <- function(chimericReads, minMapBase = 1) {
     keepedReadNames <- NULL
     
     for (readName in readNames) {
-        shortMapping <- TRUE
+        shortMapping <- FALSE
+        missInfo <- c(FALSE, FALSE)
         readIndex <- which(chimericReads$qname == readName)
         if (length(readIndex) >= 2) {
             allReads <- lapply(chimericReads, function(x) x[readIndex])
@@ -68,30 +69,32 @@ filterReadsWithoutShortMapping <- function(chimericReads, minMapBase = 1) {
                             allReads$cigarNum[readSup][[1]][
                                 allReads$cigarChar[readSup][[1]] == "M"])))
                 }
+                if (is.na(softClipLen) | is.na(supMatchLen)) {
+                    missInfo[i] <- TRUE
+                }
                 if(!is.na(softClipLen) & !is.na(supMatchLen)) {
-                    if (supMatchLen - softClipLen < minMapBase) {
-                        shortMapping <- FALSE
+                    if (supMatchLen - softClipLen >= minMapBase) {
+                        shortMapping <- TRUE
                     }
                 }
             }
+        } else {
+            shortMapping <- TRUE
+        }
+        if(all(missInfo)) {
+            shortMapping <- TRUE
         }
         if (shortMapping) {
             keepedReadNames <- c(keepedReadNames, readName)
         }
     }
     
-    keepIndex <- which(chimericReads$qname %in% keepedReadNames)
-    chimericReads$firstRead <- NULL
-    chimericReads$isSupplementary <- NULL
-    chimericReads$cigarNum <- NULL
-    chimericReads$cigarChar <- NULL
-    chimericReads <- lapply(chimericReads, function(x) x[keepIndex])
-    return(chimericReads)
+    return (unique(keepedReadNames))
 }
 
-filterAllReadsWithoutShortMapping <- function(chimericReads, minMapBase=1,
-                                              threads=1) {
-    nReads <- 1e+4
+filterAllReadsWithoutShortMapping <- function(chimericReads, minMapBase, 
+                                              threads) {
+    nReads <- 5e+4
     starts <- seq(1, length(chimericReads$qname), by = nReads)
     ends <- starts + nReads - 1
     ends[length(ends)] <- length(chimericReads$qname)
@@ -105,7 +108,7 @@ filterAllReadsWithoutShortMapping <- function(chimericReads, minMapBase=1,
     registerDoParallel(cl)
     res <- foreach(start=starts,
                    end=ends,
-                   .combine = function(x, y) Map("c", x, y),
+                   .combine = "c",
                    .verbose = FALSE,
                    .packages = c("Biostrings", "Rsamtools","BiocGenerics"),
                    .export = c("filterReadsWithoutShortMapping")
@@ -118,3 +121,4 @@ filterAllReadsWithoutShortMapping <- function(chimericReads, minMapBase=1,
     stopCluster(cl)
     return(res)
 }
+

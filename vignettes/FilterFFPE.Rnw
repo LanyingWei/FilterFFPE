@@ -29,23 +29,24 @@ The next-generation sequencing (NGS) reads from formalin-fixed paraffin-embedded
 (FFPE) samples contain numerous artifact chimeric reads, which can lead to a
 large number of false positive structural variation (SV) calls. The
 \Biocpkg{FilterFFPE} package finds and filters these artifact chimeric reads
-from BAM files of FFPE samples.
+from BAM files to improve SV calling performance in FFPE samples.
 
 \section{Input}
 
 The required input is an indexed BAM file of the FFPE sample, the PCR or optical
-duplicates should be marked or removed from the BAM file. Example of such a BAM
+duplicates should be marked or removed from the BAM file. If you plan to filter
+reads with mapping quality, or to only keep reads in targeted region, please do 
+that after using FilterFFPE, as these steps may remove some of the alignments 
+that is useful to the FilterFFPE's filtering algorithm. Example of such a BAM 
 file is stored in the 'extdata' directory of \Biocpkg{FilterFFPE} package).
 
 \section{Artifact Chimeric Read Filtration}
 
 The filtration includes two steps: 1) Find artifact chimeric reads from BAM file
-. 2) Remove these artifact chimeric reads in the filtered BAM file. We recommend
-to also remove PCR or optical duplicates of all chimeric reads, since these
-reads may contain duplicates of artifact chimeric reads.
+. 2) Remove these artifact chimeric reads in the filtered BAM file.
 \Rfunction{findArtifactChimericReads} can be used to find artifact chimeric
-reads, read names of PCR or optical duplicates of all chimeric reads are also
-found and written in a txt file by this function.
+reads; read names of PCR or optical duplicates of all chimeric reads are also
+found and written in a txt file for filtration.
 \Rfunction{filterBamByReadNames} can be used for further filtration, it
 generates a filtered and indexed BAM file. \Rfunction{FFPEReadFilter} combines
 these two functions.

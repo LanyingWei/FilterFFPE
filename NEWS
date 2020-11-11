@@ -4,3 +4,6 @@ Changes in version 0.99.3 (2020-10-08)
 + Fix error in the algorithm under multiple threading
 Changes in version 0.99.3 (2020-10-09)
 + Speed up the filtering process using minMapBase
+Changes in version 1.3.0 (2020-11-11)
++ Fix bugs in keeping extra reads when filtering with minMapBase
++ Allow skipping filtering with minMapBase

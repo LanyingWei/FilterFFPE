@@ -14,7 +14,8 @@
 The next-generation sequencing (NGS) reads from formalin-fixed paraffin-embedded
 (FFPE) samples contain numerous artifact chimeric reads, which can lead to a
 large number of false positive structural variation (SV) calls. This package
-finds and filters these artifact chimeric reads from BAM files of FFPE samples.
+finds and filters these artifact chimeric reads from BAM files of FFPE samples
+to improve SV calling performance.
 
 \packageIndices{FilterFFPE}
 There are three available functions to find and/or filter artifact chimeric

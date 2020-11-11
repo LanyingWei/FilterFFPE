@@ -1,6 +1,6 @@
 findReadsWithID <- function(bamFile, readNames, what=scanBamWhat(),
                             which=IRangesList(), isSupplementaryAlignment=NA,
-                            reverseComplement=NA, mapqFilter=1) {
+                            reverseComplement=NA) {
 
     message('Finding reads with read name...')
     if (!'qname' %in% what) {
@@ -14,8 +14,7 @@ findReadsWithID <- function(bamFile, readNames, what=scanBamWhat(),
                       simpleCigar = FALSE,
                       reverseComplement = reverseComplement,
                       what = what,
-                      which = which,
-                      mapqFilter = mapqFilter)
+                      which = which)
 
     bam <- scanBam(bamFile, param = p)[[1]]
     bam <- lapply(bam, function(x) x[bam$qname %in% readNames])
@@ -26,8 +25,7 @@ findReadsWithID <- function(bamFile, readNames, what=scanBamWhat(),
 findAllReadsWithID <- function(bamFilePath, readNames,
                                what=c("qname", "flag", "cigar"),
                                isSupplementaryAlignment=NA,
-                               reverseComplement=FALSE, mapqFilter=1,
-                               threads=1) {
+                               reverseComplement=FALSE, threads=1) {
 
     chunkSize <- 1e+07
     if (!'qname' %in% what) {
@@ -53,8 +51,7 @@ findAllReadsWithID <- function(bamFilePath, readNames,
                                             what = what,
                                             which = chrRegions[i],
                                             isSupplementaryAlignment = NA,
-                                            reverseComplement = FALSE,
-                                            mapqFilter = mapqFilter)
+                                            reverseComplement = FALSE)
                         }
     stopCluster(cl)
     return(allReads)
